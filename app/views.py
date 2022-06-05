@@ -26,7 +26,7 @@ import json
 
 @app.route("/") #主頁
 def index():
-    return render_template("index.html")
+    return render_template("public/index.html")
 
 def allowed_excel(filename):
 
@@ -75,13 +75,14 @@ def upload_excel():
             if allowed_excel(excel.filename):
                 filename = secure_filename(excel.filename)
                 ext = filename.rsplit(".", 1)[1] #獲取檔案副檔名
-                upload_path = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop') #儲存位置
+
+                upload_path = os.path.join(os.path.expanduser("~"), 'Downloads') #儲存位置
 
                 if ext == "csv":
                     excel.save(upload_path)
                     str_upload_path = str(upload_path)
 
-                    os.rename(str_upload_path + excel.filename,str_upload_path + "/ori.xlsx")
+                    os.rename(str_upload_path + excel.filename, str_upload_path + "/ori.xlsx")
 
                     #excel.save(os.path.join(app.config["EXCEL_UPLOADS"], filename)) #將csv檔儲存在app.config["EXCEL_UPLOADS"]裡
                     #import_files_to_mongodb(filename)
@@ -89,7 +90,7 @@ def upload_excel():
                     excel.save(upload_path)
                     str_upload_path = str(upload_path)
 
-                    os.rename(str_upload_path + excel.filename,str_upload_path + "/ori.xlsx")
+                    os.rename(str_upload_path + excel.filename, str_upload_path + "/ori.xlsx")
                     #將excel檔案儲存在資料夾
                     #excel.save(os.path.join(app.config["EXCEL_UPLOADS"], filename))
                     #讀取使用者上傳的excel檔
@@ -121,7 +122,8 @@ def upload_excel():
 @app.route("/test", methods=["GET", "POST"]) #
 def test():
 
-    upload_path = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop') #抓檔案的儲存位置
+    upload_path = os.path.join(
+                os.path.join(os.environ['USERPROFILE']), 'Downloads') #抓檔案的儲存位置(桌面)
 
     # 使用openpyxl建立新活頁簿wb_new
     wb_new = Workbook()
@@ -159,17 +161,3 @@ def downloadfile(excel_name):
     except FileNotFoundError:
         abort(404)
 #原本的程式碼return send_from_directory(app.config["CLIENT_EXCELS"], filename=excel_name, as_attachment=True)，現在filename要改成path
-
-
-
-#將csv檔上傳到MongoDB
-#conn = MongoClient("mongodb+srv://root:root159258@cluster0.oe4sl.mongodb.net/myFirstDatabase?retryWrites=true&w=majority", tlsCAFile=certifi.where())
-#db = conn.test #選擇操作 test 資料庫
-#collection = db.users #選擇操作 users 集合
-
-# test if connection success
-#collection.stats  # 如果沒有error，即就連線成功
-
-#df = pd.read_csv("test.csv") #選擇要操作的csv檔
-#data = df.to_dict(orient = "records")
-#collection.insert_many(data) #新增資料
