@@ -1,3 +1,5 @@
+gunicorn
+scikit-learn
 certifi==2021.10.8
 click==8.1.2
 colorama==0.4.4
