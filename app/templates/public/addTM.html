@@ -1,0 +1,32 @@
+{% extends "public/templates/public_template.html" %}
+
+{% block title %}Add Trademark{% endblock %}
+
+{% block main %}
+<form action="/trademark" style="margin-top: 20px;" method="GET" enctype="text/plain" >
+  <h3 align="center">Add your logo</h3>
+  <div class="form-group">
+    <label for="trademark">trademark</label>
+    <input
+      type="text"
+      class="form-control"
+      id="trademark"
+      name="trademark"
+      placeholder="請輸入商標"
+    />
+    <p></p>
+    <label for="Column name">Column name</label>
+    <input
+      type="text"
+      class="form-control"
+      id="TMcolname"
+      name="TMcolname"
+      placeholder="請輸入要藏入的欄位名稱"
+    />
+  </div>
+  <br />
+  <button type="submit" class="button">加入商標</button>
+</form>
+
+{% endblock %}
+    
