@@ -3,30 +3,44 @@
 {% block title %}Add Trademark{% endblock %}
 
 {% block main %}
-<form action="/trademark" style="margin-top: 20px;" method="GET" enctype="text/plain" >
-  <h3 align="center">Add your logo</h3>
-  <div class="form-group">
-    <label for="trademark">trademark</label>
-    <input
-      type="text"
-      class="form-control"
-      id="trademark"
-      name="trademark"
-      placeholder="請輸入商標"
-    />
-    <p></p>
-    <label for="Column name">Column name</label>
-    <input
-      type="text"
-      class="form-control"
-      id="TMcolname"
-      name="TMcolname"
-      placeholder="請輸入要藏入的欄位名稱"
-    />
+<div class="container">
+  <div class="row">
+    <div class="col">
+      <form action="/trademark" style="margin-top: 20px;" method="GET" enctype="text/plain" >
+        <h3 align="center">Add your Trademark</h3>
+        <div class="form-group">
+          <label for="trademark">trademark</label>
+          <input
+            type="text"
+            class="form-control"
+            id="trademark"
+            name="trademark"
+            placeholder="請輸入商標"
+          />
+          <p></p>
+          <label for="Column name">Column name</label>
+          <input
+            type="text"
+            class="form-control"
+            id="TMcolname"
+            name="TMcolname"
+            placeholder="請輸入欄位名稱"
+          />
+        </div>
+        <br />
+        <button type="submit" class="button">加入商標，取得EXCEL</button>
+        <p></p>
+        <button type="submit" formaction="/download_SHA/sha.txt" class="button">取得原始資料的雜湊值</button>
+        <p></p>
+        <button type="submit" formaction="/download_HIST/hist_ori.png" class="button">取得原始資料的直方圖</button>
+        <p></p>
+        <button type="submit" formaction="/download_HIST/hist_shifting.png" class="button">取得位移過後資料的直方圖</button>
+        <p></p>
+        <button type="submit" formaction="/download_HIST/hist_hiding.png" class="button">取得藏入商標後資料的直方圖</button>
+      </form>
+    </div>
   </div>
-  <br />
-  <button type="submit" class="button">加入商標</button>
-</form>
+</div>
 
 {% endblock %}
     

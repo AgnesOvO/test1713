@@ -293,7 +293,7 @@ def trademark():
     plt.xticks(bins_listx2)
     plt.savefig(app.config["EXCEL_HIST"] + "/hist_hiding.png")
 
-    return redirect("/download2/"+'new_excel_TM.xlsx')
+    return redirect("/download_TM" + "/new_excel_TM.xlsx")
 
 @app.route("/download/<excel_name>")
 def downloadfile(excel_name):
@@ -303,10 +303,27 @@ def downloadfile(excel_name):
         abort(404)
 #原本的程式碼return send_from_directory(app.config["CLIENT_EXCELS"], filename=excel_name, as_attachment=True)，現在filename要改成path
 
-@app.route("/download2/<excel_name>")
-def downloadfile2(excel_name):
+#下載位移過的檔案
+@app.route("/download_TM/<excel_name>")
+def downloadfile_TM(excel_name):
     try:
         return send_from_directory(app.config["EXCEL_TM"], path=excel_name, as_attachment=True)
     except FileNotFoundError:
         abort(404)
 #原本的程式碼return send_from_directory(app.config["CLIENT_EXCELS"], filename=excel_name, as_attachment=True)，現在filename要改成path
+
+#下載雜湊值
+@app.route("/download_SHA/<excel_name>")
+def downloadfile_SHA(excel_name):
+    try:
+        return send_from_directory(app.config["EXCEL_SHA"], path=excel_name, as_attachment=True)
+    except FileNotFoundError:
+        abort(404)
+
+#下載直方圖
+@app.route("/download_HIST/<excel_name>")
+def downloadfile_HIST(excel_name):
+    try:
+        return send_from_directory(app.config["EXCEL_HIST"], path=excel_name, as_attachment=True)
+    except FileNotFoundError:
+        abort(404)
