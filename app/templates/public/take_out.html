@@ -1,0 +1,40 @@
+{% extends "public/templates/public_template.html" %}
+
+{% block title %}Data Reversing{% endblock %}
+
+{% block main %}
+<div class="container">
+  <div class="row">
+    <div class="col">
+      <form action="/mes" style="margin-top: 20px;" method="GET" enctype="text/plain" >
+        <h3 align="center">Enter Peak & Column name</h3>
+        <div class="form-group">
+            <label for="Peak">Peak</label>
+            <input
+              type="text"
+              class="form-control"
+              id="peak"
+              name="peak"
+              placeholder="請輸入最高點"
+            />
+            <p></p>
+            <label for="MEScolname">Column name</label>
+            <input
+              type="text"
+              class="form-control"
+              id="MEScolname"
+              name="MEScolname"
+              placeholder="請輸入欄位名稱"
+            />
+          </div>
+        <br />
+        <button type="submit" class="button">還原檔案</button>
+        <p></p>
+        <button type="submit" formaction="/download_RE/re.txt" class="button">取得雜湊值</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+    

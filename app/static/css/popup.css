@@ -1,0 +1,41 @@
+body {
+    background-color: rgb(193, 193, 193);
+}
+
+a {
+    text-decoration: none;
+    font-size: 30px;
+    color: blueviolet;
+    margin: 50px;
+}
+
+.modal-header h3 {
+    font-size: 30px;
+    color: blueviolet;
+    /* 置中 */
+    position: absolute;
+    top: 7%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.modal-content {
+    background-color: burlywood;
+}
+
+.modal-body form .account,
+.modal-body form .password {
+    margin: 30px;
+    width: 90%;
+    border-radius: 20px;
+}
+
+.remember {
+    margin-bottom: 20px;
+}
+
+.modal-body form .btn {
+    width: 100%;
+    font-size: 25px;
+    color: white;
+}

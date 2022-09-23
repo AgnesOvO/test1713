@@ -94,62 +94,35 @@ def upload_excel():
 
     return render_template("public/upload_excel.html")
 
-app.config["NEW_EXCEL"] = "/app/app/static/new_excel" #新excel檔(總成績歸零)的儲存位置
-#將總成績清空
-@app.route("/test", methods=["GET", "POST"])
-def test():
-
-    # 使用openpyxl建立新活頁簿wb_new
-    wb_new = Workbook()
-    wb_new.save(app.config["NEW_EXCEL"] + '/new_excel_test.xlsx')
-
-    # 使用openpyxl讀取原始檔案
-    wb = load_workbook(app.config["EXCEL_UPLOADS"] + '/ori.xlsx')
-    ws = wb.worksheets[0]
-
-    # 使用openpyxl讀取new_excel
-    wb_new = load_workbook(app.config["NEW_EXCEL"] + '/new_excel_test.xlsx')
-    ws_new = wb_new.active
-
-    a = pd.read_excel(app.config["EXCEL_UPLOADS"] + '/ori.xlsx')
-    df = pd.DataFrame(a)
-    List= df['總成績'].tolist()  
-    #print(List) #列出總成績那列的數字
-
-    n=-1
-    for i in List:
-        n=n+1  
-        df.at[n, "總成績"] = 0 
-        df = DataFrame(df) 
-        DataFrame(df).to_excel(app.config["NEW_EXCEL"] + "/" + 'new_excel_test.xlsx', sheet_name='Sheet1', index=False, header=True)
-    return redirect("/download/"+'new_excel_test.xlsx') 
-
 #下載檔案，用from flask import send_from_directory, abort
 #app.config["CLIENT_EXCELS"] = "/app/app/static/excel" #要從哪裡下載
 
-app.config["EXCEL_TM"] = "/app/app/static/excel_TM" #藏入商標後的檔案存檔路徑
-app.config["EXCEL_SHA"] = "/app/app/static/excel_sha" #雜湊值存檔路徑
-app.config["EXCEL_HIST"] = "/app/app/static/excel_hist" #excel產生的直方圖存檔路徑
+app.config["EXCEL_SHA"] = "/app/app/static/excel_sha" #雜湊值 存檔路徑
+app.config["EXCEL_HASH"] = "/app/app/static/excel_hash" #藏入雜湊值後的檔案 存檔路徑
+#app.config["EXCEL_HIST"] = "/app/app/static/excel_hist" #excel產生的直方圖存檔路徑
 
-#輸入欄位名稱_藏入商標
-@app.route("/add-trademark", methods=["POST"])
-def add_trademark():
-    return render_template("public/addTM.html")
+def popup(MAX):
+    flash('請記下來，此檔案的最高值: ' + str(MAX), 'warning')
 
-#藏入商標
-@app.route("/trademark", methods=["GET", "POST"])
-def trademark():
+#輸入欄位名稱_藏入雜湊值
+@app.route("/add-hash", methods=["POST"])
+def add_hash():
+    return render_template("public/addHASH.html")
+
+#藏入雜湊值
+@app.route("/HASH", methods=["GET", "POST"])
+def hash():
 
     # 使用openpyxl建立新活頁簿wb_new
     wb_new = Workbook()
-    wb_new.save(app.config["EXCEL_TM"] + '/new_excel_TM.xlsx')
+    wb_new.save(app.config["EXCEL_HASH"] + '/new_excel_hash.xlsx')
 
     # 使用openpyxl讀取原始檔案
     wb = load_workbook(app.config["EXCEL_UPLOADS"] + '/ori.xlsx')
     ws = wb.worksheets[0]
 
     # 使用openpyxl讀取new_excel
-    wb_new = load_workbook(app.config["EXCEL_TM"] + '/new_excel_TM.xlsx')
+    wb_new = load_workbook(app.config["EXCEL_HASH"] + '/new_excel_hash.xlsx')
     ws_new = wb_new.active
 
     #雜湊值的檔案
@@ -159,7 +132,7 @@ def trademark():
     #讀舊檔，輸入欄位名稱
     a=pd.read_excel(app.config["EXCEL_UPLOADS"] + '/ori.xlsx')
     df = pd.DataFrame(a)
-    sp = request.args.get('TMcolname') #request.args.get('TMcolname')是由使用者輸入的欄位名稱
+    sp = request.args.get('HASHcolname') #request.args.get('HASHcolname')是由使用者輸入的欄位名稱
     List= df[sp].tolist()
 
     df1=df[sp].apply(str)
@@ -191,10 +164,10 @@ def trademark():
 
     MAX=max(List)
 
-    plt.hist(List,range(0,MAX+2),align='left', edgecolor='#000000',linewidth=2)
-    plt.xticks(List)
-    plt.savefig(app.config["EXCEL_HIST"] + "/hist_ori.png") #原始資料的直方圖
-    plt.close()
+    #plt.hist(List,range(0,MAX+2),align='left', edgecolor='#000000',linewidth=2)
+    #plt.xticks(List)
+    #plt.savefig(app.config["EXCEL_HIST"] + "/hist_ori.png") #原始資料的直方圖
+    #plt.close()
 
     n=-1
     p=[]
@@ -206,7 +179,171 @@ def trademark():
                 p.append(c[1][n])
 
     M=p[0]     #找第一個出現的最大值
+    #print('最高點', M)
+    m=-1
+    o=[]
+    for i in a:
+        m=m+1  
+        if i < M:  
+            i=i-1
+            df.at[m,sp] = i
+            DataFrame(df).to_excel(app.config["EXCEL_HASH"] + '/new_excel_hash.xlsx',sheet_name='Sheet1', index=False, header=True)
+            if(i<0): 
+                o.append(m)
+        else:     
+            if(i==M):
+                df.at[m,sp] = i
+                DataFrame(df).to_excel(app.config["EXCEL_HASH"] + '/new_excel_hash.xlsx',sheet_name='Sheet1', index=False, header=True)
+            else:
+                i=i+1
+                df.at[m,sp] = i
+                DataFrame(df).to_excel(app.config["EXCEL_HASH"] + '/new_excel_hash.xlsx',sheet_name='Sheet1', index=False, header=True)  
 
+    def union_without_repetition(list1,list2):
+        result = list(set(list1) | set(list2))
+        return result
+
+    r=pd.read_excel(app.config["EXCEL_HASH"] + '/new_excel_hash.xlsx',sheet_name='Sheet1')
+    sr= df[sp].tolist()
+    ar=np.array(sr)
+
+    bins_listx=union_without_repetition(List,sr)
+    #plt.hist(sr,range(-1,MAX+2),align='left', edgecolor='#000000',linewidth=2)
+    #plt.xticks(bins_listx)
+    #plt.savefig(app.config["EXCEL_HIST"] + "/hist_shifting.png")
+    #plt.close()
+
+    tc=len(bin_str)
+
+    n=-1
+    t=-1
+    for i in ar:
+        n=n+1
+        if(i==M):
+            t=t+1    #計算第在第幾個資料
+            if(t<tc):
+                if(bin_str[t]=='1'):
+                    i=i-1
+                    df.at[n,sp] = i
+                    DataFrame(df).to_excel(app.config["EXCEL_HASH"] + '/new_excel_hash.xlsx',sheet_name='Sheet1', index=False, header=True)
+                if(bin_str[t]=='0'):
+                    DataFrame(df).to_excel(app.config["EXCEL_HASH"] + '/new_excel_hash.xlsx',sheet_name='Sheet1', index=False, header=True)
+                if(bin_str[t]==' '):
+                    i=i+1
+                    df.at[n,sp] = i
+                    DataFrame(df).to_excel(app.config["EXCEL_HASH"] + '/new_excel_hash.xlsx',sheet_name='Sheet1', index=False, header=True)
+        else:
+            df.at[n,sp]=i
+            DataFrame(df).to_excel(app.config["EXCEL_HASH"] + '/new_excel_hash.xlsx',sheet_name='Sheet1', index=False, header=True)
+
+
+
+    def union_without_repetition(list1,list2):
+        result = list(set(list1) | set(list2))
+        return result
+
+    fn = app.config["EXCEL_HASH"] + '/new_excel_hash.xlsx'
+    wb=load_workbook(fn)
+    sheet_ranges = wb['Sheet1']
+
+    k = pd.read_excel(app.config["EXCEL_HASH"] + '/new_excel_hash.xlsx',nrows=0)
+    L = k.columns.tolist()
+    r=L.index(sp)+1
+
+    font = Font(size=15)
+
+    for i in o:
+        i=i+2 #PYTHON讀的格子0 在EXCEL是2
+        f = sheet_ranges.cell(row=i, column=r)
+        f.font = font
+        f.value=0
+        wb.save(app.config["EXCEL_HASH"] + '/new_excel_hash.xlsx')
+
+    r=pd.read_excel(app.config["EXCEL_HASH"] + '/new_excel_hash.xlsx')
+    sx= df[sp].tolist()
+    bins_listx2=union_without_repetition(bins_listx,sx)
+    #plt.hist(sx,range(0,MAX+2),align='left', edgecolor='#000000',linewidth=2)
+    #plt.xticks(bins_listx2)
+    #plt.savefig(app.config["EXCEL_HIST"] + "/hist_hiding.png")
+    popup(M)
+    return redirect("/download_HASH" + "/new_excel_hash.xlsx")
+
+#下載位移過的檔案
+@app.route("/download_HASH/<excel_name>")
+def downloadfile_HASH(excel_name):
+    try:
+        return send_from_directory(app.config["EXCEL_HASH"], path=excel_name, as_attachment=True)
+    except FileNotFoundError:
+        abort(404)
+#原本的程式碼return send_from_directory(app.config["CLIENT_EXCELS"], filename=excel_name, as_attachment=True)，現在filename要改成path
+
+#下載雜湊值
+@app.route("/download_SHA/<excel_name>")
+def downloadfile_SHA(excel_name):
+    try:
+        return send_from_directory(app.config["EXCEL_SHA"], path=excel_name, as_attachment=True)
+    except FileNotFoundError:
+        abort(404)
+
+
+
+app.config["EXCEL_TM"] = "/app/app/static/excel_TM" #藏入商標後的檔案 存檔路徑
+
+#輸入欄位名稱_藏入商標
+@app.route("/add-trademark", methods=["POST"])
+def add_trademark():
+    return render_template("public/addTM.html")
+
+#藏入商標
+@app.route("/trademark", methods=["GET", "POST"])
+def trademark():
+
+    # 使用openpyxl建立新活頁簿wb_new
+    wb_new = Workbook()
+    wb_new.save(app.config["EXCEL_TM"] + '/new_excel_TM.xlsx')
+
+    # 使用openpyxl讀取原始檔案
+    wb = load_workbook(app.config["EXCEL_UPLOADS"] + '/ori.xlsx')
+    ws = wb.worksheets[0]
+
+    # 使用openpyxl讀取new_excel
+    wb_new = load_workbook(app.config["EXCEL_TM"] + '/new_excel_TM.xlsx')
+    ws_new = wb_new.active
+
+    a=pd.read_excel(app.config["EXCEL_UPLOADS"] + '/ori.xlsx') #讀取原檔
+    df = pd.DataFrame(a)
+    sp = request.args.get('TMcolname') #request.args.get('TMcolname')是由使用者輸入的欄位名稱
+    List= df[sp].tolist()
+
+    recounted = Counter(List)   #統計資料出現次數
+
+    b1=df.groupby(sp).size()
+    A=max(b1)  #找出最大值的點為多少
+
+    a=np.array(List)   #將資料改成陣列  (分數)
+    a1=np.unique(a)    
+
+    b=np.array(b1)     #將資料轉成陣列  (次數)
+
+    c=np.vstack((b,a1))   #合併變成二維陣列
+
+    MAX=max(List)
+    #plt.hist(List,range(0,MAX+3),align='left', edgecolor='#000000',linewidth=2)
+    #plt.xticks(List)
+    #plt.savefig("hist2-0.png")
+    #plt.close()
+
+    n=-1
+    p=[]
+
+    for row in c:    
+        for col in row: 
+            n=n+1
+            if(col==A):     #判斷次數如果是跟最大一樣
+                p.append(c[1][n])
+
+    M=p[0]     #找第一個出現的最大值
+    #print("最高點",M)
     m=-1
     o=[]
     for i in a:
@@ -235,12 +372,16 @@ def trademark():
     ar=np.array(sr)
 
     bins_listx=union_without_repetition(List,sr)
-    plt.hist(sr,range(-1,MAX+2),align='left', edgecolor='#000000',linewidth=2)
-    plt.xticks(bins_listx)
-    plt.savefig(app.config["EXCEL_HIST"] + "/hist_shifting.png")
-    plt.close()
+    #plt.hist(sr,range(-1,MAX+3),align='left', edgecolor='#000000',linewidth=2)
+    #plt.xticks(bins_listx)
+    #plt.savefig("hist2-1.png")
+    #plt.close()
 
-    tc=len(bin_str)
+    sy = request.args.get('trademark')
+    p= ' '.join(format(ord(c), 'b') for c in sy)
+    #print("藏入資料:",p)
+    tc=len(p)
+    #print("長度:",tc)
 
     n=-1
     t=-1
@@ -249,20 +390,24 @@ def trademark():
         if(i==M):
             t=t+1    #計算第在第幾個資料
             if(t<tc):
-                if(bin_str[t]=='1'):
+                if(p[t]=='1'):
                     i=i-1
                     df.at[n,sp] = i
                     DataFrame(df).to_excel(app.config["EXCEL_TM"] + '/new_excel_TM.xlsx',sheet_name='Sheet1', index=False, header=True)
-                if(bin_str[t]=='0'):
+                if(p[t]=='0'):
                     DataFrame(df).to_excel(app.config["EXCEL_TM"] + '/new_excel_TM.xlsx',sheet_name='Sheet1', index=False, header=True)
-                if(bin_str[t]==' '):
+                if(p[t]==' '):
                     i=i+1
                     df.at[n,sp] = i
                     DataFrame(df).to_excel(app.config["EXCEL_TM"] + '/new_excel_TM.xlsx',sheet_name='Sheet1', index=False, header=True)
+            else:
+                t=-1
+                i=i+1
+                df.at[n,sp]=i
+                DataFrame(df).to_excel(app.config["EXCEL_TM"] + '/new_excel_TM.xlsx',sheet_name='Sheet1', index=False, header=True)
         else:
             df.at[n,sp]=i
             DataFrame(df).to_excel(app.config["EXCEL_TM"] + '/new_excel_TM.xlsx',sheet_name='Sheet1', index=False, header=True)
-
 
 
     def union_without_repetition(list1,list2):
@@ -289,19 +434,11 @@ def trademark():
     r=pd.read_excel(app.config["EXCEL_TM"] + '/new_excel_TM.xlsx')
     sx= df[sp].tolist()
     bins_listx2=union_without_repetition(bins_listx,sx)
-    plt.hist(sx,range(0,MAX+2),align='left', edgecolor='#000000',linewidth=2)
-    plt.xticks(bins_listx2)
-    plt.savefig(app.config["EXCEL_HIST"] + "/hist_hiding.png")
-
+    #plt.hist(sx,range(-1,MAX+3),align='left', edgecolor='#000000',linewidth=2)
+    #plt.xticks(bins_listx2)
+    #plt.savefig("hist2-2.png")
+    popup(M) #FLASH最高值
     return redirect("/download_TM" + "/new_excel_TM.xlsx")
-
-@app.route("/download/<excel_name>")
-def downloadfile(excel_name):
-    try:
-        return send_from_directory(app.config["NEW_EXCEL"], path=excel_name, as_attachment=True)
-    except FileNotFoundError:
-        abort(404)
-#原本的程式碼return send_from_directory(app.config["CLIENT_EXCELS"], filename=excel_name, as_attachment=True)，現在filename要改成path
 
 #下載位移過的檔案
 @app.route("/download_TM/<excel_name>")
@@ -312,18 +449,95 @@ def downloadfile_TM(excel_name):
         abort(404)
 #原本的程式碼return send_from_directory(app.config["CLIENT_EXCELS"], filename=excel_name, as_attachment=True)，現在filename要改成path
 
-#下載雜湊值
-@app.route("/download_SHA/<excel_name>")
-def downloadfile_SHA(excel_name):
-    try:
-        return send_from_directory(app.config["EXCEL_SHA"], path=excel_name, as_attachment=True)
-    except FileNotFoundError:
-        abort(404)
 
-#下載直方圖
-@app.route("/download_HIST/<excel_name>")
-def downloadfile_HIST(excel_name):
+app.config["EXCEL_RE"] = "/app/app/static/excel_re" #還原後檔案 存檔路徑
+
+#上傳要還原的檔案
+@app.route("/upload-excel-re", methods=["GET", "POST"])
+def upload_excel_re():
+
+    if request.method == "POST":
+
+        if request.files:
+
+            excel = request.files["excel_re"]
+
+            if excel.filename == "":
+                flash('未選取檔案', 'warning')
+                return redirect(request.url)
+
+            if allowed_excel(excel.filename):
+                filename = secure_filename(excel.filename)
+                
+                #如果檔名已經存在，則刪除舊檔，建立新檔
+                if os.path.isfile(app.config["EXCEL_RE"] + excel.filename):
+                    os.remove(app.config["EXCEL_RE"] + excel.filename)
+                    excel.save(os.path.join(app.config["EXCEL_RE"], excel.filename))
+                else:
+                    excel.save(os.path.join(app.config["EXCEL_RE"], excel.filename))
+
+                #如果ori.xlsx存在，則刪除舊檔，建立新檔
+                str_upload_path = str(app.config["EXCEL_RE"])
+                if os.path.isfile(app.config["EXCEL_RE"] + "/excel_reverse.xlsx"):
+                    os.remove(app.config["EXCEL_RE"] + "/excel_reverse.xlsx")
+                    os.rename(str_upload_path + "/" + excel.filename,str_upload_path + "/" + "excel_reverse.xlsx")
+                else:
+                    os.rename(str_upload_path + "/" + excel.filename,str_upload_path + "/" + "excel_reverse.xlsx")
+
+                flash('Excel saved', 'success')
+                return redirect(request.url)
+                #return redirect("/download/"+filename) #會下載剛剛上傳的檔案
+
+            else:
+                flash('請上傳附檔名為 .xlsx 的檔案', 'warning')
+                return redirect(request.url)
+
+    return render_template("public/data_reversing.html")
+
+#輸入欄位名稱和最高點_取出商標或雜湊
+@app.route("/take-out-mes", methods=["GET", "POST"])
+def take_out_mes():
+    return render_template("public/take_out.html")
+
+#取出商標或雜湊
+@app.route("/mes", methods=["GET", "POST"])
+def mes():
+
+    M = int(request.args.get('peak')) #最高點
+
+    path = app.config["EXCEL_RE"] + "/re.txt"
+    f = open(path, 'w',encoding='UTF-8')
+
+    def decode(s): #由ASCII二進位刑式轉回ASCII對應字元
+        return ''.join([chr(i) for i in [int(b, 2) for b in s.split()]])
+    
+    a=pd.read_excel(app.config["EXCEL_RE"] + '/excel_reverse.xlsx')
+    df = pd.DataFrame(a)
+
+    sp = request.args.get('MEScolname')
+    List= df[sp].tolist()  
+    n=-1
+    k=""
+    for i in List:
+        n=n+1
+        if(i==M):
+            k=k+"0"
+        if(i==M-1):
+            k=k+"1" 
+        if(i==M+1):
+            k=k+" "
+    print(decode(k))
+    #讀雜湊
+    print(k)
+    print(k,file=f)  #儲存檔案txt
+    f.close()
+    return redirect("/download_RE" + "/excel_reverse.xlsx")
+
+#下載位移過的檔案
+@app.route("/download_RE/<excel_name>")
+def downloadfile_RE(excel_name):
     try:
-        return send_from_directory(app.config["EXCEL_HIST"], path=excel_name, as_attachment=True)
+        return send_from_directory(app.config["EXCEL_RE"], path=excel_name, as_attachment=True)
     except FileNotFoundError:
         abort(404)
+#原本的程式碼return send_from_directory(app.config["CLIENT_EXCELS"], filename=excel_name, as_attachment=True)，現在filename要改成path

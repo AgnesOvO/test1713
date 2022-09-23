@@ -1,6 +1,6 @@
 {% extends "public/templates/public_template.html" %}
 
-{% block title %}Upload{% endblock %}
+{% block title %}Data Hiding{% endblock %}
 
 {% block main %}
 
@@ -8,9 +8,11 @@
   <div class="row">
     <div class="col">
       <form action="/upload-excel" style="margin-top: 20px;" method="POST" enctype="multipart/form-data">
-        <h3 align="center">Upload an Excel</h3>
+        
+        <h3 align="center">Data Hiding</h3>
+
         <div class="form-group">
-          <label>Select Excel</label>
+          <label>Select an Excel</label>
           <div class="custom-file">
             <input
               type="file" 
@@ -20,12 +22,13 @@
             <label class="custom-file-label" for="excel"></label>
           </div>
         </div>
+
         <div>        
         <button type="submit" class="btn btn-primary">Upload</button>
         <p></p> <!-- 空格 -->
         請先上傳檔案，跳出Excel saved的提示後，再按以下功能按鈕。
         <p></p>
-        <button type="submit" formaction="/test" class="button">將總成績清零</button>
+        <button type="submit" formaction="/add-hash" class="button">加入驗證碼(雜湊值)</button>
         <p></p>
         <button type="submit" formaction="/add-trademark" class="button">加入商標</button>
         </div>
