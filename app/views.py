@@ -265,6 +265,8 @@ def hash():
     #plt.hist(sx,range(0,MAX+2),align='left', edgecolor='#000000',linewidth=2)
     #plt.xticks(bins_listx2)
     #plt.savefig(app.config["EXCEL_HIST"] + "/hist_hiding.png")
+    
+                
     popup(M)
     return redirect("/download_HASH" + "/new_excel_hash.xlsx")
 
