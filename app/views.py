@@ -49,7 +49,7 @@ def allowed_excel(filename):
     else:
         return False                
 
-app.config["EXCEL_UPLOADS"] = "/app/app/static/excel" #儲存位置
+app.config["EXCEL_UPLOADS"] = "/app/app/static/upload/excel_hide/excel_ori" #儲存位置
 app.config["ALLOWED_EXCEL_EXTENSIONS"] = ["XLSX"] #允許的副檔名
 app.config["SECRET_KEY"] = "OCML3BOswQEUeaxcuKHLpw" #隨機產生的SECRET_KEY，有這個才能跑flash
 
@@ -92,13 +92,13 @@ def upload_excel():
                 flash('請上傳附檔名為 .xlsx 的檔案', 'warning')
                 return redirect(request.url)
 
-    return render_template("public/upload_excel.html")
+    return render_template("public/data_hiding.html")
 
 #下載檔案，用from flask import send_from_directory, abort
 #app.config["CLIENT_EXCELS"] = "/app/app/static/excel" #要從哪裡下載
 
-app.config["EXCEL_SHA"] = "/app/app/static/excel_sha" #雜湊值 存檔路徑
-app.config["EXCEL_HASH"] = "/app/app/static/excel_hash" #藏入雜湊值後的檔案 存檔路徑
+app.config["EXCEL_SHA"] = "/app/app/static/upload/excel_hide/excel_sha" #雜湊值 存檔路徑 C:\app\app\static\upload\excel_hash
+app.config["EXCEL_HASH"] = "/app/app/static/upload/excel_hide/excel_hash" #藏入雜湊值後的檔案 存檔路徑
 #app.config["EXCEL_HIST"] = "/app/app/static/excel_hist" #excel產生的直方圖存檔路徑
 
 def popup(MAX):
@@ -289,7 +289,7 @@ def downloadfile_SHA(excel_name):
 
 
 
-app.config["EXCEL_TM"] = "/app/app/static/excel_TM" #藏入商標後的檔案 存檔路徑
+app.config["EXCEL_TM"] = "/app/app/static/upload/excel_hide/excel_TM" #藏入商標後的檔案 存檔路徑
 
 #輸入欄位名稱_藏入商標
 @app.route("/add-trademark", methods=["POST"])
@@ -451,8 +451,8 @@ def downloadfile_TM(excel_name):
         abort(404)
 #原本的程式碼return send_from_directory(app.config["CLIENT_EXCELS"], filename=excel_name, as_attachment=True)，現在filename要改成path
 
-
-app.config["EXCEL_RE"] = "/app/app/static/excel_re" #還原後檔案 存檔路徑
+app.config["EXCEL_UPLOADS_RE"] = "/app/app/static/upload/excel_re/re_ori" #還原頁面上傳的檔案(位移過的檔案) 存檔路徑
+app.config["EXCEL_RE"] = "/app/app/static/upload/excel_re/re_new" #還原後檔案 存檔路徑
 
 #上傳要還原的檔案
 @app.route("/upload-excel-re", methods=["GET", "POST"])
@@ -472,19 +472,19 @@ def upload_excel_re():
                 filename = secure_filename(excel.filename)
                 
                 #如果檔名已經存在，則刪除舊檔，建立新檔
-                if os.path.isfile(app.config["EXCEL_RE"] + excel.filename):
-                    os.remove(app.config["EXCEL_RE"] + excel.filename)
-                    excel.save(os.path.join(app.config["EXCEL_RE"], excel.filename))
+                if os.path.isfile(app.config["EXCEL_UPLOADS_RE"] + excel.filename):
+                    os.remove(app.config["EXCEL_UPLOADS_RE"] + excel.filename)
+                    excel.save(os.path.join(app.config["EXCEL_UPLOADS_RE"], excel.filename))
                 else:
-                    excel.save(os.path.join(app.config["EXCEL_RE"], excel.filename))
+                    excel.save(os.path.join(app.config["EXCEL_UPLOADS_RE"], excel.filename))
 
                 #如果ori.xlsx存在，則刪除舊檔，建立新檔
-                str_upload_path = str(app.config["EXCEL_RE"])
-                if os.path.isfile(app.config["EXCEL_RE"] + "/excel_reverse.xlsx"):
-                    os.remove(app.config["EXCEL_RE"] + "/excel_reverse.xlsx")
-                    os.rename(str_upload_path + "/" + excel.filename,str_upload_path + "/" + "excel_reverse.xlsx")
+                str_upload_path = str(app.config["EXCEL_UPLOADS_RE"])
+                if os.path.isfile(app.config["EXCEL_UPLOADS_RE"] + "/ori_reverse.xlsx"):
+                    os.remove(app.config["EXCEL_UPLOADS_RE"] + "/ori_reverse.xlsx")
+                    os.rename(str_upload_path + "/" + excel.filename,str_upload_path + "/" + "ori_reverse.xlsx")
                 else:
-                    os.rename(str_upload_path + "/" + excel.filename,str_upload_path + "/" + "excel_reverse.xlsx")
+                    os.rename(str_upload_path + "/" + excel.filename,str_upload_path + "/" + "ori_reverse.xlsx")
 
                 flash('Excel saved', 'success')
                 return redirect(request.url)
@@ -507,33 +507,72 @@ def mes():
 
     M = int(request.args.get('peak')) #最高點
 
-    path = app.config["EXCEL_RE"] + "/re.txt"
-    f = open(path, 'w',encoding='UTF-8')
+    re_ori_file = app.config["EXCEL_UPLOADS_RE"] + '/ori_reverse.xlsx' #還原頁面上傳的檔案(位移過的檔案) 存檔路徑
+    re_file = app.config["EXCEL_RE"] + '/new_excel_reverse.xlsx' #還原後檔案 存檔路徑
 
-    def decode(s): #由ASCII二進位刑式轉回ASCII對應字元
-        return ''.join([chr(i) for i in [int(b, 2) for b in s.split()]])
-    
-    a=pd.read_excel(app.config["EXCEL_RE"] + '/excel_reverse.xlsx')
+    a=pd.read_excel(re_ori_file) #讀原檔
     df = pd.DataFrame(a)
 
-    sp = request.args.get('MEScolname')
-    List= df[sp].tolist()  
+    sp = str(request.args.get('MEScolname')) #要修改的欄位
+    List= df[sp].tolist() 
+
+    wb=load_workbook(re_ori_file)
+    sheet_ranges = wb['Sheet1']
+
+    a=np.array(List)   #將資料改成陣列  (分數)  
+
+    k = pd.read_excel(re_ori_file,nrows=0)
+    L = k.columns.tolist()
+    print(L) 
+    r=L.index(sp)+1
+    print(r)
+
+
+    d=-1
+    for k in a:
+        d=d+1
+        i=d+2
+        f = sheet_ranges.cell(row=i, column=r)
+        t=f.font
+        if(t.size==15):
+        # print(d,i)
+            k=-1
+            df.at[d,sp] = k
+            DataFrame(df).to_excel(re_file,sheet_name='Sheet1', index=False, header=True) 
+            
     n=-1
-    k=""
-    for i in List:
+    for i in a:
         n=n+1
-        if(i==M):
-            k=k+"0"
         if(i==M-1):
-            k=k+"1" 
+            i=i+1
+            df.at[n,sp] = i
+            DataFrame(df).to_excel(re_file,sheet_name='Sheet1', index=False, header=True)    
         if(i==M+1):
-            k=k+" "
-    print(decode(k))
-    #讀雜湊
-    print(k)
-    print(k,file=f)  #儲存檔案txt
-    f.close()
-    return redirect("/download_RE" + "/excel_reverse.xlsx")
+            i=i-1
+            df.at[n,sp]=i
+            DataFrame(df).to_excel(re_file,sheet_name='Sheet1', index=False, header=True)
+
+    a1=pd.read_excel(re_file)
+    df1 = pd.DataFrame(a1)
+    List1= df1[sp].tolist()
+
+    a2=np.array(List1)
+
+    m=-1
+    for e in a2:
+        m=m+1  
+        if(e < M):  
+            e=e+1
+            df.at[m,sp] = e
+            DataFrame(df).to_excel(re_file,sheet_name='Sheet1', index=False, header=True)
+        if(e > M):  
+            e=e-1
+            df.at[m,sp] = e
+            DataFrame(df).to_excel(re_file,sheet_name='Sheet1', index=False, header=True)
+        else:    
+            df.at[m,sp] = e
+            DataFrame(df).to_excel(re_file,sheet_name='Sheet1', index=False, header=True)
+    return redirect("/download_RE" + "/new_excel_reverse.xlsx")
 
 #下載位移過的檔案
 @app.route("/download_RE/<excel_name>")
