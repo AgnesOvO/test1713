@@ -574,6 +574,157 @@ def mes():
             DataFrame(df).to_excel(re_file,sheet_name='Sheet1', index=False, header=True)
     return redirect("/download_RE" + "/new_excel_reverse.xlsx")
 
+#輸入欄位名稱和最高點_取出雜湊
+@app.route("/take-out-hash", methods=["GET", "POST"])
+def take_out_HASH():
+    return render_template("public/takeoutHASH.html")
+
+#取出雜湊並比對
+@app.route("/HASH_RE", methods=["GET", "POST"])
+def hashRE():
+
+    M = int(request.args.get('REHASHpeak')) #最高點
+
+    re_ori_file = app.config["EXCEL_UPLOADS_RE"] + '/ori_reverse.xlsx' #還原頁面上傳的檔案(位移過的檔案) 存檔路徑
+    re_file = app.config["EXCEL_RE"] + '/new_excel_reverse.xlsx' #還原後檔案 存檔路徑
+
+    a=pd.read_excel(re_ori_file) #讀原檔
+    df = pd.DataFrame(a)
+
+    sp = str(request.args.get('REHASHcolname')) #要修改的欄位
+    List= df[sp].tolist() 
+
+    wb=load_workbook(re_ori_file)
+    sheet_ranges = wb['Sheet1']
+
+    a=np.array(List)   #將資料改成陣列  (分數)  
+
+    k = pd.read_excel(re_ori_file,nrows=0)
+    L = k.columns.tolist()
+    print(L) 
+    r=L.index(sp)+1
+    print(r)
+
+
+    d=-1
+    for k in a:
+        d=d+1
+        i=d+2
+        f = sheet_ranges.cell(row=i, column=r)
+        t=f.font
+        if(t.size==15):
+        # print(d,i)
+            k=-1
+            df.at[d,sp] = k
+            DataFrame(df).to_excel(re_file, sheet_name='Sheet1', index=False, header=True) 
+            
+    n=-1
+    for i in a:
+        n=n+1
+        if(i==M-1):
+            i=i+1
+            df.at[n,sp] = i
+            DataFrame(df).to_excel(re_file, sheet_name='Sheet1', index=False, header=True)    
+        if(i==M+1):
+            i=i-1
+            df.at[n,sp]=i
+            DataFrame(df).to_excel(re_file, sheet_name='Sheet1', index=False, header=True)
+
+    a1=pd.read_excel(re_file)
+    df1 = pd.DataFrame(a1)
+    List1= df1[sp].tolist()
+
+    a2=np.array(List1)
+
+    m=-1
+    for e in a2:
+        m=m+1  
+        if(e < M):  
+            e=e+1
+            df.at[m,sp] = e
+            DataFrame(df).to_excel(re_file, sheet_name='Sheet1', index=False, header=True)
+        if(e > M):  
+            e=e-1
+            df.at[m,sp] = e
+            DataFrame(df).to_excel(re_file, sheet_name='Sheet1', index=False, header=True)
+        else:    
+            df.at[m,sp] = e
+            DataFrame(df).to_excel(re_file, sheet_name='Sheet1', index=False, header=True)
+
+    path = app.config["EXCEL_RE"] + '/new_HASH.txt'
+    f = open(path, 'w',encoding='UTF-8')
+
+    a=pd.read_excel(re_file, sheet_name='Sheet1')
+    df = pd.DataFrame(a)
+
+    sp = str(request.args.get('REHASHcolname'))
+    List= df[sp].tolist()
+
+    df1=df[sp].apply(str)
+    #print(df1)
+    u=[]
+    for i in df1:
+        u.append(i)
+    #print(u)
+
+    T="".join(u)
+    #print(T)
+
+    sha = hashlib.md5(T.encode("utf-8")).hexdigest()
+    print(sha)
+    print(sha,file=f)  
+
+    bin_str = ""
+    for n in sha:
+        bin_str += bin(int(n,16))[2:].zfill(4)
+
+    print(bin_str) 
+    print(bin_str,file=f) 
+            
+    return redirect("/download_RE" + "/new_excel_reverse.xlsx")
+
+#輸入欄位名稱和最高點_取出商標
+@app.route("/take-out-tm", methods=["GET", "POST"])
+def take_out_TM():
+    return render_template("public/takeoutTM.html")
+
+def decode(s): #由ASCII二進位刑式轉回ASCII對應字元
+    return ''.join([chr(i) for i in [int(b, 2) for b in s.split()]])
+
+#取出雜湊並比對
+@app.route("/TM_RE", methods=["GET", "POST"])
+def tmRE():
+
+    M = int(request.args.get('RETMpeak')) #最高點
+
+    re_ori_file = app.config["EXCEL_UPLOADS_RE"] + '/ori_reverse.xlsx' #還原頁面上傳的檔案(位移過的檔案) 存檔路徑
+    re_file = app.config["EXCEL_RE"] + '/new_excel_reverse.xlsx' #還原後檔案 存檔路徑
+
+    path = app.config["EXCEL_RE"] + '/Trademark.txt'
+    f = open(path, 'w',encoding='UTF-8')
+
+    a=pd.read_excel(re_ori_file) #讀原檔
+    df = pd.DataFrame(a)
+
+    sp = str(request.args.get('RETMcolname')) #要讀取的欄位
+    List= df[sp].tolist()  
+    n=-1
+    k=""
+    for i in List:
+        n=n+1
+        if(i==M):
+            k=k+"0"
+        if(i==M-1):
+            k=k+"1" 
+        if(i==M+1):
+            k=k+" "
+    #讀商標
+    print(decode(k))
+    print(decode(k),file=f)  
+    f.close() 
+            
+    return redirect("/download_RE" + "/new_excel_reverse.xlsx")
+
 #下載位移過的檔案
 @app.route("/download_RE/<excel_name>")
 def downloadfile_RE(excel_name):
