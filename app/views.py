@@ -28,7 +28,11 @@ import csv
 import shutil #移動檔案 覆蓋原檔案
 #import pandas as pd 重複了
 import json
+#比對雜湊值
+import tkinter as tk
+import filecmp
 #set FLASK_ENV=development
+
 
 @app.route("/") #主頁
 def index():
@@ -265,10 +269,11 @@ def hash():
     #plt.hist(sx,range(0,MAX+2),align='left', edgecolor='#000000',linewidth=2)
     #plt.xticks(bins_listx2)
     #plt.savefig(app.config["EXCEL_HIST"] + "/hist_hiding.png")
-    
-                
-    popup(M)
-    return redirect("/download_HASH" + "/new_excel_hash.xlsx")
+    if M is not None:
+        popup(M) #FLASH最高值
+        return render_template("public/addHASH.html")
+    else:
+        flash('ERROR', 'warning')
 
 #下載位移過的檔案
 @app.route("/download_HASH/<excel_name>")
@@ -439,8 +444,12 @@ def trademark():
     #plt.hist(sx,range(-1,MAX+3),align='left', edgecolor='#000000',linewidth=2)
     #plt.xticks(bins_listx2)
     #plt.savefig("hist2-2.png")
-    popup(M) #FLASH最高值
-    return redirect("/download_TM" + "/new_excel_TM.xlsx")
+    if M is not None:
+        popup(M) #FLASH最高值
+        return render_template("public/addTM.html")
+    else:
+        flash('ERROR', 'warning')
+    
 
 #下載位移過的檔案
 @app.route("/download_TM/<excel_name>")
@@ -588,7 +597,7 @@ def hashRE():
     re_ori_file = app.config["EXCEL_UPLOADS_RE"] + '/ori_reverse.xlsx' #還原頁面上傳的檔案(位移過的檔案) 存檔路徑
     re_file = app.config["EXCEL_RE"] + '/new_excel_reverse.xlsx' #還原後檔案 存檔路徑
 
-    a=pd.read_excel(re_ori_file) #讀原檔
+    a=pd.read_excel(re_ori_file) #讀使用者上傳的檔案
     df = pd.DataFrame(a)
 
     sp = str(request.args.get('REHASHcolname')) #要修改的欄位
@@ -679,9 +688,28 @@ def hashRE():
         bin_str += bin(int(n,16))[2:].zfill(4)
 
     print(bin_str) 
-    print(bin_str,file=f) 
+    print(bin_str,file=f)
+
+    #比對雜湊值
+    window = tk.Tk()
+    window.title('比對驗證碼')
+    window.geometry("300x80")
+
+    ori_hash = app.config["EXCEL_RE"] + '/ori_HASH.txt' #使用者上傳後轉成雜湊
+    new_hash = app.config["EXCEL_RE"] + '/new_HASH.txt' #從RE取出來的雜湊
+
+    if filecmp.cmp(ori_hash, new_hash):
+        print("檔案相同")
+        label = tk.Label(window,text = '檔案沒有被修改過',font = ('Arial', 16)) 
+    else:
+        print("檔案不同")
+        label = tk.Label(window,text = '檔案被修改過',font = ('Arial', 16)) 
+
+    label.pack()
+    window.mainloop()
             
-    return redirect("/download_RE" + "/new_excel_reverse.xlsx")
+    return render_template("public/takeoutHASH.html")            
+    #return redirect("/download_RE" + "/new_excel_reverse.xlsx")
 
 #輸入欄位名稱和最高點_取出商標
 @app.route("/take-out-tm", methods=["GET", "POST"])
@@ -723,7 +751,7 @@ def tmRE():
     print(decode(k),file=f)  
     f.close() 
             
-    return redirect("/download_RE" + "/new_excel_reverse.xlsx")
+    return redirect("download_RE" + "/Trademark.txt")
 
 #下載位移過的檔案
 @app.route("/download_RE/<excel_name>")

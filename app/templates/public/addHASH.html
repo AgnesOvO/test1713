@@ -23,13 +23,16 @@
         </div>
 
         <br />
-        <button type="submit" class="button">加入驗證碼(雜湊值)，取得EXCEL</button>
-        <!--  不讓使用者拿到存放雜湊值的檔案
+        STEP 1. <button type="submit" class="button">加入驗證碼(雜湊值)，取得最高值</button><strong> 請記下最高值!</strong>
+        <p></p>
+        STEP 2. <button type="submit" formaction="/download_HASH/new_excel_hash.xlsx" class="button">取得EXCEL</button>
+        
+
         <p></p>
         <button type="submit" formaction="/download_SHA/sha.txt" class="button">取得原始資料產生的雜湊值</button>
-        -->
+        
         <p></p>
-        成功藏入驗證碼並取得檔案後，請按下F5以獲得檔案最高值，並<strong>請您將最高值記下來</strong>。
+        <!--成功藏入驗證碼並取得檔案後，請按下F5以獲得檔案最高值，並<strong>請您將最高值記下來</strong>。-->
       </form>
     </div>
   </div>
