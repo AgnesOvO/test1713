@@ -30,6 +30,7 @@ import shutil #移動檔案 覆蓋原檔案
 import json
 #比對雜湊值
 import tk
+import tkinter as tk
 import filecmp
 #set FLASK_ENV=development
 
@@ -305,16 +306,18 @@ def add_trademark():
 @app.route("/trademark", methods=["GET", "POST"])
 def trademark():
 
+    new_excel_tm = app.config["EXCEL_TM"] + '/processed.xlsx' #使用者上傳後的檔案
+
     # 使用openpyxl建立新活頁簿wb_new
     wb_new = Workbook()
-    wb_new.save(app.config["EXCEL_TM"] + '/new_excel_TM.xlsx')
+    wb_new.save(new_excel_tm)
 
     # 使用openpyxl讀取原始檔案
     wb = load_workbook(app.config["EXCEL_UPLOADS"] + '/ori.xlsx')
     ws = wb.worksheets[0]
 
     # 使用openpyxl讀取new_excel
-    wb_new = load_workbook(app.config["EXCEL_TM"] + '/new_excel_TM.xlsx')
+    wb_new = load_workbook(new_excel_tm)
     ws_new = wb_new.active
 
     a=pd.read_excel(app.config["EXCEL_UPLOADS"] + '/ori.xlsx') #讀取原檔
@@ -358,23 +361,23 @@ def trademark():
         if i < M:  
             i=i-1
             df.at[m,sp] = i
-            DataFrame(df).to_excel(app.config["EXCEL_TM"] + '/new_excel_TM.xlsx',sheet_name='Sheet1', index=False, header=True)
+            DataFrame(df).to_excel(new_excel_tm, sheet_name='Sheet1', index=False, header=True)
             if(i<0): 
                 o.append(m)
         else:     
             if(i==M):
                 df.at[m,sp] = i
-                DataFrame(df).to_excel(app.config["EXCEL_TM"] + '/new_excel_TM.xlsx',sheet_name='Sheet1', index=False, header=True)
+                DataFrame(df).to_excel(new_excel_tm, sheet_name='Sheet1', index=False, header=True)
             else:
                 i=i+1
                 df.at[m,sp] = i
-                DataFrame(df).to_excel(app.config["EXCEL_TM"] + '/new_excel_TM.xlsx',sheet_name='Sheet1', index=False, header=True)  
+                DataFrame(df).to_excel(new_excel_tm, sheet_name='Sheet1', index=False, header=True)  
 
     def union_without_repetition(list1,list2):
         result = list(set(list1) | set(list2))
         return result
 
-    r=pd.read_excel(app.config["EXCEL_TM"] + '/new_excel_TM.xlsx',sheet_name='Sheet1')
+    r=pd.read_excel(new_excel_tm, sheet_name='Sheet1')
     sr= df[sp].tolist()
     ar=np.array(sr)
 
@@ -400,32 +403,31 @@ def trademark():
                 if(p[t]=='1'):
                     i=i-1
                     df.at[n,sp] = i
-                    DataFrame(df).to_excel(app.config["EXCEL_TM"] + '/new_excel_TM.xlsx',sheet_name='Sheet1', index=False, header=True)
+                    DataFrame(df).to_excel(new_excel_tm, sheet_name='Sheet1', index=False, header=True)
                 if(p[t]=='0'):
-                    DataFrame(df).to_excel(app.config["EXCEL_TM"] + '/new_excel_TM.xlsx',sheet_name='Sheet1', index=False, header=True)
+                    DataFrame(df).to_excel(new_excel_tm, sheet_name='Sheet1', index=False, header=True)
                 if(p[t]==' '):
                     i=i+1
                     df.at[n,sp] = i
-                    DataFrame(df).to_excel(app.config["EXCEL_TM"] + '/new_excel_TM.xlsx',sheet_name='Sheet1', index=False, header=True)
+                    DataFrame(df).to_excel(new_excel_tm, sheet_name='Sheet1', index=False, header=True)
             else:
                 t=-1
                 i=i+1
                 df.at[n,sp]=i
-                DataFrame(df).to_excel(app.config["EXCEL_TM"] + '/new_excel_TM.xlsx',sheet_name='Sheet1', index=False, header=True)
+                DataFrame(df).to_excel(new_excel_tm, sheet_name='Sheet1', index=False, header=True)
         else:
             df.at[n,sp]=i
-            DataFrame(df).to_excel(app.config["EXCEL_TM"] + '/new_excel_TM.xlsx',sheet_name='Sheet1', index=False, header=True)
+            DataFrame(df).to_excel(new_excel_tm, sheet_name='Sheet1', index=False, header=True)
 
 
     def union_without_repetition(list1,list2):
         result = list(set(list1) | set(list2))
         return result
 
-    fn = app.config["EXCEL_TM"] + '/new_excel_TM.xlsx'
-    wb=load_workbook(fn)
+    wb=load_workbook(new_excel_tm)
     sheet_ranges = wb['Sheet1']
 
-    k = pd.read_excel(app.config["EXCEL_TM"] + '/new_excel_TM.xlsx',nrows=0)
+    k = pd.read_excel(new_excel_tm, nrows=0)
     L = k.columns.tolist()
     r=L.index(sp)+1
 
@@ -436,9 +438,9 @@ def trademark():
         f = sheet_ranges.cell(row=i, column=r)
         f.font = font
         f.value=0
-        wb.save(app.config["EXCEL_TM"] + '/new_excel_TM.xlsx')
+        wb.save(new_excel_tm)
 
-    r=pd.read_excel(app.config["EXCEL_TM"] + '/new_excel_TM.xlsx')
+    r=pd.read_excel(new_excel_tm)
     sx= df[sp].tolist()
     bins_listx2=union_without_repetition(bins_listx,sx)
     #plt.hist(sx,range(-1,MAX+3),align='left', edgecolor='#000000',linewidth=2)
@@ -517,7 +519,7 @@ def mes():
     M = int(request.args.get('peak')) #最高點
 
     re_ori_file = app.config["EXCEL_UPLOADS_RE"] + '/ori_reverse.xlsx' #還原頁面上傳的檔案(位移過的檔案) 存檔路徑
-    re_file = app.config["EXCEL_RE"] + '/new_excel_reverse.xlsx' #還原後檔案 存檔路徑
+    re_file = app.config["EXCEL_RE"] + '/recovered.xlsx' #還原後檔案 存檔路徑
 
     a=pd.read_excel(re_ori_file) #讀原檔
     df = pd.DataFrame(a)
@@ -581,7 +583,7 @@ def mes():
         else:    
             df.at[m,sp] = e
             DataFrame(df).to_excel(re_file,sheet_name='Sheet1', index=False, header=True)
-    return redirect("/download_RE" + "/new_excel_reverse.xlsx")
+    return redirect("/download_RE" + "/recovered.xlsx")
 
 #輸入欄位名稱和最高點_取出雜湊
 @app.route("/take-out-hash", methods=["GET", "POST"])
@@ -595,7 +597,7 @@ def hashRE():
     M = int(request.args.get('REHASHpeak')) #最高點
 
     re_ori_file = app.config["EXCEL_UPLOADS_RE"] + '/ori_reverse.xlsx' #還原頁面上傳的檔案(位移過的檔案) 存檔路徑
-    re_file = app.config["EXCEL_RE"] + '/new_excel_reverse.xlsx' #還原後檔案 存檔路徑
+    re_file = app.config["EXCEL_RE"] + '/recovered.xlsx' #還原後檔案 存檔路徑
 
     a=pd.read_excel(re_ori_file) #讀使用者上傳的檔案
     df = pd.DataFrame(a)
@@ -709,7 +711,7 @@ def hashRE():
     window.mainloop()
             
     return render_template("public/takeoutHASH.html")            
-    #return redirect("/download_RE" + "/new_excel_reverse.xlsx")
+    #return redirect("/download_RE" + "/recovered.xlsx")
 
 #輸入欄位名稱和最高點_取出商標
 @app.route("/take-out-tm", methods=["GET", "POST"])
@@ -719,16 +721,16 @@ def take_out_TM():
 def decode(s): #由ASCII二進位刑式轉回ASCII對應字元
     return ''.join([chr(i) for i in [int(b, 2) for b in s.split()]])
 
-#取出雜湊並比對
+#取出商標
 @app.route("/TM_RE", methods=["GET", "POST"])
 def tmRE():
 
     M = int(request.args.get('RETMpeak')) #最高點
 
     re_ori_file = app.config["EXCEL_UPLOADS_RE"] + '/ori_reverse.xlsx' #還原頁面上傳的檔案(位移過的檔案) 存檔路徑
-    re_file = app.config["EXCEL_RE"] + '/new_excel_reverse.xlsx' #還原後檔案 存檔路徑
+    re_file = app.config["EXCEL_RE"] + '/recovered.xlsx' #還原後檔案 存檔路徑
 
-    path = app.config["EXCEL_RE"] + '/Trademark.txt'
+    path = app.config["EXCEL_RE"] + '/extracted_logo.txt'
     f = open(path, 'w',encoding='UTF-8')
 
     a=pd.read_excel(re_ori_file) #讀原檔
@@ -751,7 +753,7 @@ def tmRE():
     print(decode(k),file=f)  
     f.close() 
             
-    return redirect("download_RE" + "/Trademark.txt")
+    return redirect("download_RE" + "/extracted_logo.txt")
 
 #下載位移過的檔案
 @app.route("/download_RE/<excel_name>")
