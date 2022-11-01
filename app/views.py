@@ -31,7 +31,6 @@ import json
 #比對雜湊值
 #import tk
 import tkinter as tk
-#from tkinter import *
 import filecmp
 #set FLASK_ENV=development
 
