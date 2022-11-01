@@ -29,8 +29,8 @@ import shutil #移動檔案 覆蓋原檔案
 #import pandas as pd 重複了
 import json
 #比對雜湊值
-#import tk
-import tkinter as tk
+import tk
+#import tkinter as tk
 import filecmp
 #set FLASK_ENV=development
 
