@@ -507,12 +507,12 @@ def upload_excel_re():
 
     return render_template("public/data_reversing.html")
 
-#輸入欄位名稱和最高點_取出商標或雜湊
+#輸入欄位名稱和最高點_取出商標
 @app.route("/take-out-mes", methods=["GET", "POST"])
 def take_out_mes():
     return render_template("public/take_out.html")
 
-#取出商標或雜湊
+#取出商標
 @app.route("/mes", methods=["GET", "POST"])
 def mes():
 
@@ -583,6 +583,30 @@ def mes():
         else:    
             df.at[m,sp] = e
             DataFrame(df).to_excel(re_file,sheet_name='Sheet1', index=False, header=True)
+    
+    path = app.config["EXCEL_RE"] + '/extracted_logo.txt'
+    f = open(path, 'w',encoding='UTF-8')
+
+    a=pd.read_excel(re_ori_file) #讀原檔
+    df = pd.DataFrame(a)
+
+    sp = str(request.args.get('MEScolname')) #要讀取的欄位
+    List= df[sp].tolist()  
+    n=-1
+    k=""
+    for i in List:
+        n=n+1
+        if(i==M):
+            k=k+"0"
+        if(i==M-1):
+            k=k+"1" 
+        if(i==M+1):
+            k=k+" "
+    #讀商標
+    print(decode(k))
+    print(decode(k),file=f)  
+    f.close()
+
     return redirect("/download_RE" + "/recovered.xlsx")
 
 #輸入欄位名稱和最高點_取出雜湊
@@ -725,7 +749,7 @@ def decode(s): #由ASCII二進位刑式轉回ASCII對應字元
 @app.route("/TM_RE", methods=["GET", "POST"])
 def tmRE():
 
-    M = int(request.args.get('RETMpeak')) #最高點
+    M = int(request.args.get('peak')) #最高點
 
     re_ori_file = app.config["EXCEL_UPLOADS_RE"] + '/ori_reverse.xlsx' #還原頁面上傳的檔案(位移過的檔案) 存檔路徑
     re_file = app.config["EXCEL_RE"] + '/recovered.xlsx' #還原後檔案 存檔路徑
@@ -736,7 +760,7 @@ def tmRE():
     a=pd.read_excel(re_ori_file) #讀原檔
     df = pd.DataFrame(a)
 
-    sp = str(request.args.get('RETMcolname')) #要讀取的欄位
+    sp = str(request.args.get('MEScolname')) #要讀取的欄位
     List= df[sp].tolist()  
     n=-1
     k=""

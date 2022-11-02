@@ -6,33 +6,37 @@
 <div class="container">
   <div class="row">
     <div class="col">
-      <form action="/TM_RE" style="margin-top: 20px;" method="GET" enctype="text/plain" >
+      <form action="/take-out-mes" style="margin-top: 20px;" method="GET" enctype="text/plain" >
         <h3 align="center">Enter Peak & Column name</h3>
         <div class="form-group">
-            <label for="RETMPeak">Peak</label>
+            <label for="peak">Peak</label>
             <input
               type="text"
               class="form-control"
-              id="RETMpeak"
-              name="RETMpeak"
+              id="peak"
+              name="peak"
               placeholder="請輸入最高點"
             />
             <p></p>
-            <label for="RETMcolname">Column name</label>
+            <label for="MEScolname">Column name</label>
             <input
               type="text"
               class="form-control"
-              id="RETMcolname"
-              name="RETMcolname"
+              id="MEScolname"
+              name="MEScolname"
               placeholder="請輸入欄位名稱"
             />
           </div>
         <br />
         <!--
         <button type="submit" class="button">還原檔案</button>
-        -->
         <p></p>
         <button type="submit" class="button">取得檔案中藏的商標</button>
+        -->
+        <p></p>
+        STEP 1. <button type="submit" formaction="mes" class="button">還原並下載EXCEL檔案</button>
+        <p></p>
+        STEP 2. <button type="submit" formaction="download_RE/extracted_logo.txt" class="button">取出商標</button>
       </form>
     </div>
   </div>
